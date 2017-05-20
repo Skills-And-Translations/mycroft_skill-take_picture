@@ -1,7 +1,8 @@
 # Mycroft Skill to take a Picture with the Raspberry Pi Camera by Nold 2017
 
 # pip install picamera
-import picamera
+import pygame.camera
+import pygame.image
 import datetime
 
 from time import sleep
@@ -38,14 +39,16 @@ class PictureSkill(MycroftSkill):
         self.beep_sound = sound_path + 'beep.wav'
         self.shutter_sound = sound_path + 'shutter.wav'
 
-        self.camera = picamera.PiCamera(resolution=self.resolution)
+        pygame.camera.init()
+        
 
 
     def handle_intent(self, message):
         today = datetime.datetime.today()
-
         try:
-            if self.camera:
+            if len(pygame.camera.list_cameras())>0:
+                self.cam = pygame.camera.Camera(pygame.camera.list_cameras()[0])
+                self.cam.start()
                 self.speak("cheese")
                 sleep(1)
                 if 'yes' in self.enable_timer:
@@ -56,12 +59,16 @@ class PictureSkill(MycroftSkill):
                     play_wav(self.beep_sound)
                     sleep(0.5)
                 play_wav(self.shutter_sound)
-
                 try:
-                    self.camera.capture(str(self.picture_path) + '/image-' +
+                    img = self.cam.get_image()
+                    pygame.image.save(img,str(self.picture_path) + '/image-' +
                                         today.strftime('%Y-%m-%d_%H%M%S') + '.jpg')
+                    self.cam.stop()
                 except:
                     self.speak("Sorry. My camera is currently broken!")
+            else:
+                self.speak("Sorry, no webcams found. ")
+                
         except:
             self.speak("Sorry. My camera is currently broken!")
 
@@ -70,3 +77,5 @@ class PictureSkill(MycroftSkill):
 
 def create_skill():
     return PictureSkill()
+
+

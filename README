@@ -1,4 +1,23 @@
-Mycroft skill to take pictures using the RPi-Camera
+Mycroft skill to take pictures using a webcam
+
+this is fork from the rpi-camera-skill.
+
+At the moment, it takes all pictures from the first camera of a list of webcams.
+
+
+#### Installation
+
+Basicly, you only need pygame.
+
+Under ubuntu i had to do:
+
+sudo apt-get build-dep python-pygame
+source ~/.virtualenvs/mycroft/bin/activate
+sudo pip install pygame
+
+#### Config
+
+Unshure if this is working, i found my pictures always under /tmp
 
 mycroft.conf snippit:
   "PictureSkill": {
