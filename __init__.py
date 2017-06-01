@@ -93,6 +93,7 @@ class WebcamPictureSkill(MycroftSkill):
             if p.name() == "motion":
                 if notRunning:
                     subprocess.call(['killall','motion'])
+                    self.speak("I have to stop motion")
                     notRunning=False
         today = datetime.datetime.today()
         try:
@@ -116,6 +117,7 @@ class WebcamPictureSkill(MycroftSkill):
                     self.cam.stop()
                     
                     if notRunning==False:
+                        sleep(1.5)
                         subprocess.call(['motion'])
                 except:
                     self.cam.stop()
