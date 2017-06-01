@@ -13,20 +13,28 @@ from mycroft.skills.core import MycroftSkill
 from mycroft.util.log import getLogger
 from mycroft.util import play_wav
 
+import subprocess
+import psutil
+
 __author__ = 'nold'
 
 logger = getLogger(__name__)
 
 
-class PictureSkill(MycroftSkill):
-    picture_path = '/tmp'
+class WebcamPictureSkill(MycroftSkill):
+    picture_path = '/home/hersche/Bilder/Mycroftpics'
     enable_timer = 'no'
     resolution = '720p'
 
     def __init__(self):
-        super(PictureSkill, self).__init__(name="PictureSkill")
+        super(WebcamPictureSkill, self).__init__(name="WebcamPictureSkill")
 
     def initialize(self):
+
+
+        intent_fromCam = IntentBuilder("PictureFromCameraIntent").require("PictureFromCameraKeyword").require("nrOfCamera").build()
+        self.register_intent(intent_fromCam, self.handle_intent_fromCam)
+        
         intent = IntentBuilder("PictureIntent").require("PictureKeyword").build()
         self.register_intent(intent, self.handle_intent)
 
@@ -42,8 +50,50 @@ class PictureSkill(MycroftSkill):
         pygame.camera.init()
         
 
+    def handle_intent_fromCam(self, message):
+        today = datetime.datetime.today()
+        try:
+            cameraNr = int(message.data.get("nrOfCamera"))
+            if(cameraNr>0):
+                cameraNr=cameraNr-1
+            if len(pygame.camera.list_cameras())>cameraNr:
+                self.cam = pygame.camera.Camera(pygame.camera.list_cameras()[cameraNr])
+                self.cam.start()
+                self.speak("cheese 66")
+                sleep(1)
+                if 'yes' in self.enable_timer:
+                    play_wav(self.beep_sound)
+                    sleep(0.5)
+                    play_wav(self.beep_sound)
+                    sleep(0.5)
+                    play_wav(self.beep_sound)
+                    sleep(0.5)
+                #play_wav(self.shutter_sound)
+                self.speak("took picture from camera "+(cameraNr+1))
+                try:
+                    img = self.cam.get_image()
+                    pygame.image.save(img,str(self.picture_path) + '/image-' +
+                                        today.strftime('%Y-%m-%d_%H%M%S') + '.jpg')
+                    self.cam.stop()
+                except:
+                    self.cam.stop()
+                    self.speak("Sorry. My camera is currently broken!")
+            else:
+                self.speak("Sorry, no webcams found.")
+                
+        except:
+            self.speak("Sorry. A fail happend ")
+
+
 
     def handle_intent(self, message):
+        notRunning=True
+        for pid in psutil.pids():
+            p = psutil.Process(pid)
+            if p.name() == "motion":
+                if notRunning:
+                    subprocess.call(['killall','motion'])
+                    notRunning=False
         today = datetime.datetime.today()
         try:
             if len(pygame.camera.list_cameras())>0:
@@ -64,10 +114,14 @@ class PictureSkill(MycroftSkill):
                     pygame.image.save(img,str(self.picture_path) + '/image-' +
                                         today.strftime('%Y-%m-%d_%H%M%S') + '.jpg')
                     self.cam.stop()
+                    
+                    if notRunning==False:
+                        subprocess.call(['motion'])
                 except:
+                    self.cam.stop()
                     self.speak("Sorry. My camera is currently broken!")
             else:
-                self.speak("Sorry, no webcams found. ")
+                self.speak("Sorry, no webcams found.")
                 
         except:
             self.speak("Sorry. My camera is currently broken!")
@@ -76,6 +130,6 @@ class PictureSkill(MycroftSkill):
         pass
 
 def create_skill():
-    return PictureSkill()
+    return WebcamPictureSkill()
 
 
