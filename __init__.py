@@ -16,13 +16,13 @@ from mycroft.util import play_wav
 import subprocess
 import psutil
 
-__author__ = 'nold'
+__author__ = 'nold,hersche'
 
 logger = getLogger(__name__)
 
 
 class WebcamPictureSkill(MycroftSkill):
-    picture_path = '/home/hersche/Bilder/Mycroftpics'
+    picture_path = '/tmp'
     enable_timer = 'no'
     resolution = '720p'
 
@@ -30,8 +30,7 @@ class WebcamPictureSkill(MycroftSkill):
         super(WebcamPictureSkill, self).__init__(name="WebcamPictureSkill")
 
     def initialize(self):
-
-
+        self.language = self.config_core.get('lang')
         intent_fromCam = IntentBuilder("PictureFromCameraIntent").require("PictureFromCameraKeyword").require("nrOfCamera").build()
         self.register_intent(intent_fromCam, self.handle_intent_fromCam)
         
@@ -93,7 +92,10 @@ class WebcamPictureSkill(MycroftSkill):
             if p.name() == "motion":
                 if notRunning:
                     subprocess.call(['killall','motion'])
-                    self.speak("I have to stop motion")
+                    if self.language=='de':
+                        self.speak("I have to stop motion")
+                    else:
+                        self.speak("Ich muss die ueberwachung beenden")
                     notRunning=False
         today = datetime.datetime.today()
         try:
@@ -121,12 +123,21 @@ class WebcamPictureSkill(MycroftSkill):
                         subprocess.call(['motion'])
                 except:
                     self.cam.stop()
-                    self.speak("Sorry. My camera is currently broken!")
+                    if self.language=='de':
+                        self.speak("Enschuldige, da scheint irgenwas schief gegangen zu sein.")
+                    else:
+                        self.speak("Sorry. My camera is currently broken!")
             else:
-                self.speak("Sorry, no webcams found.")
+                if self.language=='de':
+                    self.speak("Enschuldige, keine Kamera gefunden")
+                else:
+                    self.speak("Sorry, no cam found.")
                 
         except:
-            self.speak("Sorry. My camera is currently broken!")
+                if self.language=='de':
+                    self.speak("Enschuldige, da scheint irgenwas schief gegangen zu sein.")
+                else:
+                    self.speak("Sorry. My camera is currently broken!")
 
     def stop(self):
         pass

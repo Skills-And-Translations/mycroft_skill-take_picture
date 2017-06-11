@@ -26,8 +26,13 @@ pip install pygame
 Unshure if this is working, i found my pictures always under /tmp
 
 mycroft.conf snippit:
-  "PictureSkill": {
+  "WebcamPictureSkill": {
     "picture_path": "/home/nold/Pictures",
     "enable_timer": "no",
     "resolution": "1080p"
   }
+  
+### NOT WORKING YET
+
+- Movie
+- From camera
